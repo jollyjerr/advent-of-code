@@ -10,13 +10,52 @@ import (
 
 func main() {
 	data := loadData()
+	partOne(data)
+	partTwo(data)
+}
 
-	for i := range data.draws {
+func partOne(data Game) {
+	win := 0
+	winner := false
+	var draws []int
+
+	for i := 0; i < len(data.draws); i++ {
 		for j, board := range data.boards {
-			if checkBoard(data.draws[:i], board) {
-				fmt.Println(j)
+			if checkBoard(data.draws[:i+1], board) {
+				win = j
+				winner = true
+				draws = data.draws[:i+1]
 				break
 			}
+		}
+		if winner {
+			break
+		}
+	}
+
+	fmt.Println("Part one", score(data.boards[win], draws))
+}
+
+func partTwo(data Game) {
+	var winners []int
+	done := false
+
+	for i := 0; i < len(data.draws); i++ {
+		for j, board := range data.boards {
+			if checkBoard(data.draws[:i+1], board) {
+				if !inSlice(j, winners) {
+					winners = append(winners, j)
+					fmt.Println(winners)
+				}
+				if len(winners) == len(data.boards) {
+					fmt.Println("Part Two", score(board, data.draws[:i+1]))
+					done = true
+					break
+				}
+			}
+		}
+		if done {
+			break
 		}
 	}
 }
@@ -39,13 +78,40 @@ func checkBoard(draws []int, board Board) bool {
 	return false
 }
 func checkLine(draws []int, line []int) bool {
-	for i, val := range draws {
-		if line[i] != val {
+	if len(draws) < 5 {
+		return false
+	}
+	for _, val := range line {
+		if !inSlice(val, draws) {
 			return false
 		}
 	}
 	return true
 }
+
+func inSlice(element int, slice []int) bool {
+	result := false
+	for _, x := range slice {
+		if x == element {
+			result = true
+		}
+	}
+	return result
+}
+
+func score(board Board, draws []int) int {
+	sum := 0
+	for i := 0; i < len(board); i++ {
+		for j := 0; j < len(board[i]); j++ {
+			if !inSlice(board[i][j], draws) {
+				sum += board[i][j]
+			}
+		}
+	}
+	return sum * draws[len(draws)-1]
+}
+
+//
 
 type Board [][]int
 type Game struct {

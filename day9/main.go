@@ -4,63 +4,75 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 )
 
 func main() {
 	data := loadData()
-	partOne(data)
-	partTwo(data)
+	lowPoints := partOne(data)
+	partTwo(data, lowPoints)
 }
 
 type node struct {
-	value   int
-	edges   []string
-	basinId string
+	value    int
+	edges    []string
+	searched bool
 }
 
-func partTwo(data [][]int) {
+func partTwo(data [][]int, lowPoints []string) {
 	graph := make(map[string]node)
 
 	for i, row := range data {
 		for j, val := range row {
 			graph[getNodeId(i, j)] = node{
-				value:   val,
-				edges:   getEdges(i, j, row, data),
-				basinId: "none",
+				value:    val,
+				edges:    getEdges(i, j, row, data),
+				searched: false,
 			}
 		}
 	}
 
-	for key, node := range graph {
-		exploreFrontier(node, key, graph)
+	sizes := make([]int, 0)
+	for _, key := range lowPoints {
+		size := 0
+		search(graph, key, &size)
+		sizes = append(sizes, size)
 	}
 
-	fmt.Println(graph)
+	fmt.Println("part two", calculateBasinRisk(sizes))
+}
+
+func calculateBasinRisk(basinSizes []int) int {
+	sort.Ints(basinSizes)
+	largest := basinSizes[len(basinSizes)-3:]
+	fmt.Println(largest)
+	total := largest[0]
+	for i := 2; i < len(basinSizes); i++ {
+		total *= basinSizes[i]
+	}
+	return total
+}
+
+func search(graph map[string]node, key string, counter *int) {
+	*counter++
+	markNode(graph, key)
+	for _, candidate := range graph[key].edges {
+		if graph[candidate].value < 9 && !graph[candidate].searched {
+			search(graph, candidate, counter)
+		}
+	}
+}
+
+func markNode(graph map[string]node, key string) {
+	copy := graph[key]
+	copy.searched = true
+	graph[key] = copy
 }
 
 func getNodeId(i, j int) string {
 	return fmt.Sprintf("%v,%v", i, j)
-}
-
-func exploreFrontier(node node, key string, graph map[string]node) {
-	if node.value < 9 {
-		for _, candidate := range node.edges {
-			if graph[candidate].value < node.value {
-				if graph[candidate].basinId != "none" {
-					node.basinId = graph[candidate].basinId
-					exploreFrontier(graph[candidate], graph[candidate].basinId, graph)
-				} else {
-					node.basinId = key
-					copy := graph[candidate]
-					copy.basinId = key
-					graph[candidate] = copy
-					exploreFrontier(graph[candidate], key, graph)
-				}
-			}
-		}
-	}
 }
 
 func getEdges(i, j int, row []int, data [][]int) []string {
@@ -86,51 +98,62 @@ func getEdges(i, j int, row []int, data [][]int) []string {
 	}
 }
 
-func partOne(data [][]int) {
+func partOne(data [][]int) []string {
 	lowPoints := make([]int, 0)
+	lowPointCords := make([]string, 0)
 	for i, row := range data {
 		for j, val := range row {
 			switch locate(i, j, len(row)-1, len(data)-1) {
 			case "topLeft":
 				if lessThanRight(val, j, row) && lessThanBottom(val, i, j, data) {
 					lowPoints = append(lowPoints, val)
+					lowPointCords = append(lowPointCords, getNodeId(i, j))
 				}
 			case "topRight":
 				if lessThanLeft(val, j, row) && lessThanBottom(val, i, j, data) {
 					lowPoints = append(lowPoints, val)
+					lowPointCords = append(lowPointCords, getNodeId(i, j))
 				}
 			case "top":
 				if lessThanLeft(val, j, row) && lessThanBottom(val, i, j, data) && lessThanRight(val, j, row) {
 					lowPoints = append(lowPoints, val)
+					lowPointCords = append(lowPointCords, getNodeId(i, j))
 				}
 			case "bottomLeft":
 				if lessThanTop(val, i, j, data) && lessThanRight(val, j, row) {
 					lowPoints = append(lowPoints, val)
+					lowPointCords = append(lowPointCords, getNodeId(i, j))
 				}
 			case "bottomRight":
 				if lessThanLeft(val, j, row) && lessThanTop(val, i, j, data) {
 					lowPoints = append(lowPoints, val)
+					lowPointCords = append(lowPointCords, getNodeId(i, j))
 				}
 			case "bottom":
 				if lessThanLeft(val, j, row) && lessThanTop(val, i, j, data) && lessThanRight(val, j, row) {
 					lowPoints = append(lowPoints, val)
+					lowPointCords = append(lowPointCords, getNodeId(i, j))
 				}
 			case "left":
 				if lessThanTop(val, i, j, data) && lessThanRight(val, j, row) && lessThanBottom(val, i, j, data) {
 					lowPoints = append(lowPoints, val)
+					lowPointCords = append(lowPointCords, getNodeId(i, j))
 				}
 			case "right":
 				if lessThanLeft(val, j, row) && lessThanTop(val, i, j, data) && lessThanBottom(val, i, j, data) {
 					lowPoints = append(lowPoints, val)
+					lowPointCords = append(lowPointCords, getNodeId(i, j))
 				}
 			case "middle":
 				if lessThanLeft(val, j, row) && lessThanTop(val, i, j, data) && lessThanRight(val, j, row) && lessThanBottom(val, i, j, data) {
 					lowPoints = append(lowPoints, val)
+					lowPointCords = append(lowPointCords, getNodeId(i, j))
 				}
 			}
 		}
 	}
-	fmt.Println(calculateRisk(lowPoints))
+	fmt.Println("Part one", calculateRisk(lowPoints))
+	return lowPointCords
 }
 
 func calculateRisk(lowPoints []int) int {
@@ -184,7 +207,7 @@ func lessThanBottom(val, i, j int, data [][]int) bool {
 
 func loadData() [][]int {
 	var data [][]int
-	f, _ := os.Open("./day9/testData.txt")
+	f, _ := os.Open("./day9/data.txt")
 	defer f.Close()
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {

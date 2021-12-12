@@ -15,13 +15,17 @@ func main() {
 	fmt.Println(count)
 }
 
-// sorta just writing part two on top of part one because it was just a change of rules
 func countPaths(start, end string, seen []string, data map[string][]string, smallCaveException string) int {
 	if start == end {
 		return 1
 	}
 	if isSmallCave(start) && isInSlice(start, seen) {
-		return 0
+		// sorta just writing part two on top of part one because it was just a change of rules
+		if smallCaveException == "none" && !isInSlice(start, []string{"start", "end"}) {
+			smallCaveException = start
+		} else {
+			return 0
+		}
 	}
 	seen = append(seen, start)
 	count := 0

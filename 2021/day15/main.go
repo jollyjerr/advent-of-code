@@ -11,14 +11,15 @@ import (
 
 func main() {
 	data := loadData()
-	data.findLowestRiskPath(1, data.totalNodes())
+	data.findLowestRiskPath(0, data.totalNodes()-1)
 }
 
 type Graph [][]int
 
 func (graph Graph) findLowestRiskPath(start, end int) int {
-	riskLevels := make([]int, len(graph))
-	visited := make([]bool, len(graph))
+	riskLevels := make([]int, len(graph)*len(graph))
+	prevVert := make([]int, len(riskLevels))
+	visited := make([]bool, len(riskLevels))
 	for i := range riskLevels {
 		riskLevels[i] = math.MaxInt
 		visited[i] = false
@@ -26,12 +27,38 @@ func (graph Graph) findLowestRiskPath(start, end int) int {
 
 	// The starting position is never entered, so its risk is not counted
 	riskLevels[start] = 0
+	visited[start] = true
+	prevVert[start] = start
 
-	visitedCount := 0
+	visitedCount := 1
 	currentNode := start
 	for visitedCount < graph.totalNodes() {
 		frontier := graph.adjacent(currentNode)
 
+		// Next step - [index, riskLevel]
+		leastRisky := []int{0, math.MaxInt}
+		for _, val := range frontier {
+			if !visited[val] {
+				if risk := graph.getRiskLevel(val) + riskLevels[prevVert[currentNode]]; risk < leastRisky[1] {
+					leastRisky = []int{val, risk}
+				}
+			}
+		}
+		visited[leastRisky[0]] = true
+		visitedCount++
+
+		toCheck := graph.adjacent(leastRisky[0])
+		fmt.Println(leastRisky[0], "to check", toCheck)
+		for _, val := range toCheck {
+			if !visited[val] {
+				if risk := graph.getRiskLevel(val) + leastRisky[1]; risk < riskLevels[val] {
+					riskLevels[val] = risk
+					prevVert[val] = leastRisky[0]
+				}
+			}
+		}
+
+		currentNode = leastRisky[0]
 	}
 	return 1
 }
@@ -59,24 +86,23 @@ func (graph Graph) adjacent(index int) []int {
 }
 
 func (graph Graph) cords(index int) (int, int) {
-	copy := index - 1
 	x := 0
 	y := 0
-	if copy < len(graph)-1 {
-		x = copy
+	if index < len(graph)-1 {
+		x = index
 	} else {
-		for copy > len(graph)-1 {
+		for index > len(graph)-1 {
 			y++
-			copy -= len(graph)
+			index -= len(graph)
 		}
-		x = copy
+		x = index
 	}
 	return x, y
 }
 
 func (graph Graph) getRiskLevel(index int) int {
 	x, y := graph.cords(index)
-	fmt.Println("cords for", index, x, y)
+	// fmt.Println("cords for", index, x, y)
 	return graph[y][x]
 }
 

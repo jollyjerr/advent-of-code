@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"math"
 	"os"
 	"strconv"
@@ -27,37 +26,28 @@ func (graph Graph) findLowestRiskPath(start, end int) int {
 
 	// The starting position is never entered, so its risk is not counted
 	riskLevels[start] = 0
-	visited[start] = true
 	prevVert[start] = start
 
-	visitedCount := 1
+	visitedCount := 0
 	currentNode := start
 	for visitedCount < graph.totalNodes() {
-		frontier := graph.adjacent(currentNode)
+		visited[currentNode] = true
+		visitedCount++
 
-		// Next step - [index, riskLevel]
-		leastRisky := []int{0, math.MaxInt}
+		frontier := graph.adjacent(currentNode)
+		leastRisky := []int{math.MaxInt, math.MaxInt}
 		for _, val := range frontier {
 			if !visited[val] {
-				if risk := graph.getRiskLevel(val) + riskLevels[prevVert[currentNode]]; risk < leastRisky[1] {
+				risk := graph.getRiskLevel(val) + riskLevels[currentNode]
+				if risk < riskLevels[val] {
+					riskLevels[val] = risk
+					prevVert[val] = currentNode
+				}
+				if risk < leastRisky[1] {
 					leastRisky = []int{val, risk}
 				}
 			}
 		}
-		visited[leastRisky[0]] = true
-		visitedCount++
-
-		toCheck := graph.adjacent(leastRisky[0])
-		fmt.Println(leastRisky[0], "to check", toCheck)
-		for _, val := range toCheck {
-			if !visited[val] {
-				if risk := graph.getRiskLevel(val) + leastRisky[1]; risk < riskLevels[val] {
-					riskLevels[val] = risk
-					prevVert[val] = leastRisky[0]
-				}
-			}
-		}
-
 		currentNode = leastRisky[0]
 	}
 	return 1

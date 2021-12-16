@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"math"
 	"os"
 	"strconv"
@@ -10,12 +11,19 @@ import (
 
 func main() {
 	data := loadData()
-	data.findLowestRiskPath(0, data.totalNodes()-1)
+
+	riskLevels, _ := data.dijsktra(0, data.totalNodes()-1)
+	fmt.Println("Part one", riskLevels[len(riskLevels)-1])
+
+	data = data.expand(5)
+	fmt.Println(data)
+	riskLevels2, _ := data.dijsktra(0, data.totalNodes()-1)
+	fmt.Println("Part two", riskLevels2[len(riskLevels)-1])
 }
 
 type Graph [][]int
 
-func (graph Graph) findLowestRiskPath(start, end int) int {
+func (graph Graph) dijsktra(start, end int) ([]int, []int) {
 	riskLevels := make([]int, len(graph)*len(graph))
 	prevVert := make([]int, len(riskLevels))
 	visited := make([]bool, len(riskLevels))
@@ -35,7 +43,7 @@ func (graph Graph) findLowestRiskPath(start, end int) int {
 		visitedCount++
 
 		frontier := graph.adjacent(currentNode)
-		leastRisky := []int{math.MaxInt, math.MaxInt}
+		// leastRisky := []int{math.MaxInt, math.MaxInt} // not sure if greedy approach works?
 		for _, val := range frontier {
 			if !visited[val] {
 				risk := graph.getRiskLevel(val) + riskLevels[currentNode]
@@ -43,14 +51,14 @@ func (graph Graph) findLowestRiskPath(start, end int) int {
 					riskLevels[val] = risk
 					prevVert[val] = currentNode
 				}
-				if risk < leastRisky[1] {
-					leastRisky = []int{val, risk}
-				}
+				// if risk < leastRisky[1] {
+				// 	leastRisky = []int{val, risk}
+				// }
 			}
 		}
-		currentNode = leastRisky[0]
+		currentNode++
 	}
-	return 1
+	return riskLevels, prevVert
 }
 
 func (graph Graph) totalNodes() int {
@@ -92,8 +100,36 @@ func (graph Graph) cords(index int) (int, int) {
 
 func (graph Graph) getRiskLevel(index int) int {
 	x, y := graph.cords(index)
-	// fmt.Println("cords for", index, x, y)
 	return graph[y][x]
+}
+
+func (graph Graph) expand(multiplier int) Graph {
+	newGraph := make(Graph, 0)
+	newGraph = append(newGraph, graph...)
+	for i := 1; i < multiplier; i++ {
+		for j, row := range graph {
+			newRow := multiplyRow(row, i)
+			newGraph[j] = append(newGraph[j], newRow...)
+		}
+	}
+	return newGraph
+}
+
+func multiplyRow(row []int, expansionIndex int) []int {
+	newRow := make([]int, 0)
+	for _, val := range row {
+		if val == 9 {
+			newRow = append(newRow, 1)
+		} else {
+			candidate := val + expansionIndex
+			if candidate > 9 {
+				newRow = append(newRow, candidate-9)
+			} else {
+				newRow = append(newRow, candidate)
+			}
+		}
+	}
+	return newRow
 }
 
 func loadData() Graph {

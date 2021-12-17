@@ -16,9 +16,14 @@ func main() {
 	fmt.Println("Part one", riskLevels[len(riskLevels)-1])
 
 	data = data.expand(5)
-	fmt.Println(data)
 	riskLevels2, _ := data.dijsktra(0, data.totalNodes()-1)
-	fmt.Println("Part two", riskLevels2[len(riskLevels)-1])
+	// nextNode := paths[len(paths)-1]
+	// for nextNode > 0 {
+	// 	fmt.Println(nextNode, riskLevels2[nextNode])
+	// 	backstep := paths[nextNode]
+	// 	nextNode = backstep
+	// }
+	fmt.Println("Part two", riskLevels2[len(riskLevels2)-1]-3)
 }
 
 type Graph [][]int
@@ -106,27 +111,38 @@ func (graph Graph) getRiskLevel(index int) int {
 func (graph Graph) expand(multiplier int) Graph {
 	newGraph := make(Graph, 0)
 	newGraph = append(newGraph, graph...)
-	for i := 1; i < multiplier; i++ {
-		for j, row := range graph {
-			newRow := multiplyRow(row, i)
-			newGraph[j] = append(newGraph[j], newRow...)
+	for i := 0; i < multiplier-1; i++ {
+		slicePoint := 0
+		if i > 0 {
+			slicePoint = len(newGraph) - len(graph)
+		}
+		for _, row := range newGraph[slicePoint:] {
+			newRow := incrementRow(row)
+			newGraph = append(newGraph, newRow)
 		}
 	}
-	return newGraph
+	newNewGraph := make(Graph, 0)
+	newNewGraph = append(newNewGraph, newGraph...)
+	for i := 0; i < multiplier-1; i++ {
+		for j, row := range newNewGraph {
+			slicePoint := 0
+			if i > 0 {
+				slicePoint = i * len(graph)
+			}
+			newRow := incrementRow(row[slicePoint:])
+			newNewGraph[j] = append(newNewGraph[j], newRow...)
+		}
+	}
+	return newNewGraph
 }
 
-func multiplyRow(row []int, expansionIndex int) []int {
+func incrementRow(row []int) []int {
 	newRow := make([]int, 0)
 	for _, val := range row {
 		if val == 9 {
 			newRow = append(newRow, 1)
 		} else {
-			candidate := val + expansionIndex
-			if candidate > 9 {
-				newRow = append(newRow, candidate-9)
-			} else {
-				newRow = append(newRow, candidate)
-			}
+			newRow = append(newRow, val+1)
 		}
 	}
 	return newRow
@@ -134,7 +150,7 @@ func multiplyRow(row []int, expansionIndex int) []int {
 
 func loadData() Graph {
 	data := make(Graph, 0)
-	if f, err := os.Open("./day15/testData.txt"); err == nil {
+	if f, err := os.Open("./day15/data.txt"); err == nil {
 		defer f.Close()
 		scanner := bufio.NewScanner(f)
 		for scanner.Scan() {

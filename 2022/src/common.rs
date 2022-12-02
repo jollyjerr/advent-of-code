@@ -1,10 +1,7 @@
 use std::{
-    path::Path,
     fs::File,
-    io::{
-        prelude::*,
-        BufReader
-    }
+    io::{prelude::*, BufReader},
+    path::Path,
 };
 
 pub fn read_lines<P: AsRef<Path>>(file_path: P) -> Vec<String> {

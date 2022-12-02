@@ -1,7 +1,7 @@
-use std::path::Path;
 use crate::common::read_lines;
+use std::path::Path;
 
-pub fn day1<P: AsRef<Path>>(file_path: P) -> (i32, i32)  {
+pub fn day1<P: AsRef<Path>>(file_path: P) -> (i32, i32) {
     let mut counters: Vec<i32> = Vec::new();
     let mut counter: i32 = 0;
     for line in read_lines(file_path) {
@@ -28,8 +28,8 @@ pub fn day1<P: AsRef<Path>>(file_path: P) -> (i32, i32)  {
 mod tests {
     use crate::day1;
 
-#[test]
-    fn test_case_1() {
+    #[test]
+    fn test_case() {
         assert_eq!(day1("src/test_data/day1.txt"), (24000, 41000));
     }
 }

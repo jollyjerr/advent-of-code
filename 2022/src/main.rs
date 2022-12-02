@@ -1,22 +1,29 @@
 mod common;
 mod day1;
+mod day2;
 
-use crate::day1::day1;
+use crate::{day1::day1, day2::day2};
 use std::env;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
 
     let day = &args[1];
-    let file =  &args[2];
+    let file = path_to_data(&args[2]);
 
     println!("Running day {} with data {}", day, file);
-    
+
     let day_str = String::as_str(day);
 
     if day_str == "1" {
         day1(file);
+    } else if day_str == "2" {
+        day2(file);
     } else {
         println!("Day {} does not exist!", day);
     }
+}
+
+fn path_to_data(name: &String) -> String {
+    format!("src/data/{}", name)
 }

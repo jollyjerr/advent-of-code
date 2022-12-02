@@ -1,2 +1,4 @@
 *.txt
 2022/target/*
+
+!2022/src/test_data/**/*

@@ -8,8 +8,8 @@ pub fn day2<P: AsRef<Path>>(file_path: P) -> (i32, i32) {
     for line in read_lines(file_path) {
         let plays: Vec<&str> = line.split(" ").collect();
 
-        part_one_total += get_round_score(plays[0], plays[1], false);
-        part_two_total += get_round_score(plays[0], plays[1], true);
+        part_one_total += get_round_score(plays[0], get_hand_match(plays[1]));
+        part_two_total += get_round_score(plays[0], get_hand_reverse(plays[0], plays[1]));
     }
 
     println!("one: {}", part_one_total);
@@ -18,15 +18,8 @@ pub fn day2<P: AsRef<Path>>(file_path: P) -> (i32, i32) {
     (part_one_total, part_two_total)
 }
 
-fn get_round_score(them: &str, you: &str, part_two: bool) -> i32 {
-    let your_hand: &str;
-    if part_two {
-        your_hand = get_hand_reverse(them, you);
-    } else {
-        your_hand = get_hand_match(you);
-    }
-
-    return get_hand_score(your_hand) + get_pair_score(them, your_hand);
+fn get_round_score(them: &str, you: &str) -> i32 {
+    return get_hand_score(you) + get_pair_score(them, you);
 }
 
 fn get_hand_score(hand: &str) -> i32 {

@@ -1,5 +1,5 @@
-use std::path::Path;
 use crate::common::read_lines;
+use std::path::Path;
 
 pub fn day3<P: AsRef<Path>>(file_path: P) -> (i32, i32) {
     static ALPHABET: &str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -31,7 +31,10 @@ pub fn day3<P: AsRef<Path>>(file_path: P) -> (i32, i32) {
         }
     }
 
-    let result = (part_one_total.try_into().unwrap(), part_two_total.try_into().unwrap());
+    let result = (
+        part_one_total.try_into().unwrap(),
+        part_two_total.try_into().unwrap(),
+    );
     println!("{:?}", result);
 
     result

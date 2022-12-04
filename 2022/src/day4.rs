@@ -24,7 +24,11 @@ pub fn day4<P: AsRef<Path>>(file_path: P) -> (i32, i32) {
         let second_range: Vec<i32> = (low_two..=high_two).collect();
 
         // lol this sucks
-        if first_range.contains(&low_two) || first_range.contains(&high_two) || second_range.contains(&low_one) || second_range.contains(&high_one) {
+        if first_range.contains(&low_two)
+            || first_range.contains(&high_two)
+            || second_range.contains(&low_one)
+            || second_range.contains(&high_one)
+        {
             part_two_total += 1;
         }
     }

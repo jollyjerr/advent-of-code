@@ -2,8 +2,9 @@ mod common;
 mod day1;
 mod day2;
 mod day3;
+mod day4;
 
-use crate::{day1::day1, day2::day2, day3::day3};
+use crate::{day1::day1, day2::day2, day3::day3, day4::day4};
 use std::env;
 
 fn main() {
@@ -22,6 +23,8 @@ fn main() {
         day2(file);
     } else if day_str == "3" {
         day3(file);
+    } else if day_str == "4" {
+        day4(file);
     } else {
         println!("Day {} does not exist!", day);
     }

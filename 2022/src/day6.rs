@@ -7,16 +7,18 @@ use std::{
 pub fn day6<P: AsRef<Path>>(file_path: P) -> (usize, usize) {
     let lines = read_lines(file_path);
 
-    let result = (find_first_marker(&lines, 4), find_first_marker(&lines, 14));
-    println!("{:?}", result);
+    let result = (
+        find_first_marker(&lines, 4).unwrap(),
+        find_first_marker(&lines, 14).unwrap(),
+    );
 
+    println!("{:?}", result);
     result
 }
 
-fn find_first_marker(lines: &Vec<String>, marker_length: i32) -> usize {
+fn find_first_marker(lines: &Vec<String>, marker_length: i32) -> Option<usize> {
     let mut seen: HashMap<char, usize> = HashMap::new();
     let mut window: VecDeque<char> = VecDeque::new();
-    let mut result: usize = 0;
     for line in lines {
         for (i, char) in line.chars().into_iter().enumerate() {
             match seen.get(&char) {
@@ -31,8 +33,7 @@ fn find_first_marker(lines: &Vec<String>, marker_length: i32) -> usize {
 
             if window.len() >= marker_length.try_into().unwrap() {
                 if seen.values().all(|v| *v == 1 as usize) {
-                    result = i + 1;
-                    break;
+                    return Some(i + 1);
                 } else {
                     let to_remove = window.pop_front().unwrap();
                     match seen.get(&to_remove) {
@@ -50,7 +51,7 @@ fn find_first_marker(lines: &Vec<String>, marker_length: i32) -> usize {
         }
     }
 
-    result
+    None
 }
 
 #[cfg(test)]

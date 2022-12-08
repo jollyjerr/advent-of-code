@@ -5,33 +5,35 @@ mod day3;
 mod day4;
 mod day5;
 mod day6;
+mod day7;
 
-use crate::{day1::day1, day2::day2, day3::day3, day4::day4, day5::day5, day6::day6};
 use std::env;
+
+#[derive(Debug)]
+enum AOCResult {
+    Numbers((i32, i32)),
+    Strings((String, String)),
+    PointerSized((usize, usize))
+}
 
 fn main() {
     let args: Vec<String> = env::args().collect();
 
-    let day = &args[1];
+    let day = String::as_str(&args[1]);
     let file = path_to_data(&args[2]);
 
-    println!("Running day {} with data {}", day, file);
+    let result = match day{
+        "1" => AOCResult::Numbers(day1::day1(file)),
+        "2" => AOCResult::Numbers(day2::day2(file)),
+        "3" => AOCResult::Numbers(day3::day3(file)),
+        "4" => AOCResult::Numbers(day4::day4(file)),
+        "5" => AOCResult::Strings(day5::day5(file)),
+        "6" => AOCResult::PointerSized(day6::day6(file)),
+        "7" => AOCResult::Numbers(day7::day7(file)),
+        _ => panic!()
+    };
 
-    let day_str = String::as_str(day);
-
-    if day_str == "1" {
-        day1(file);
-    } else if day_str == "2" {
-        day2(file);
-    } else if day_str == "3" {
-        day3(file);
-    } else if day_str == "4" {
-        day4(file);
-    } else if day_str == "5" {
-        day5(file);
-    } else if day_str == "6" {
-        day6(file);
-    }
+    println!("Day {} results (Part 1, Part 2): {:?}", day, result);
 }
 
 fn path_to_data(name: &String) -> String {

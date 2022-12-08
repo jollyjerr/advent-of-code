@@ -26,7 +26,7 @@ pub fn day1<P: AsRef<Path>>(file_path: P) -> (i32, i32) {
 
 #[cfg(test)]
 mod tests {
-    use crate::day1;
+    use crate::day1::day1;
 
     #[test]
     fn test_case() {

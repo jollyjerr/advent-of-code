@@ -15,10 +15,18 @@ pub fn day8<P: AsRef<Path>>(file_path: P) -> (i32, i32) {
                 visibility_record[i][j] = true;
                 total_visible += 1;
             }
-            if tree > &row_max[i] && tree > &col_max[j] {
-                row_max[i] = *tree;
-                col_max[j] = *tree;
 
+            let mut seen = false;
+            if tree > &row_max[i] {
+                seen = true;
+                row_max[i] = *tree;
+            }
+            if tree > &col_max[j] {
+                seen = true;
+                col_max[j] = *tree;
+            }
+
+            if seen {
                 if visibility_record[i][j] == false {
                     visibility_record[i][j] = true;
                     total_visible += 1;
@@ -32,10 +40,17 @@ pub fn day8<P: AsRef<Path>>(file_path: P) -> (i32, i32) {
     let mut col_max: Vec<i32> = vec![-1; trees.len()];
     for (i, row) in trees.iter().enumerate().rev() {
         for (j, tree) in row.iter().enumerate().rev() {
-            if tree > &row_max[i] && tree > &col_max[j] {
+            let mut seen = false;
+            if tree > &row_max[i] {
+                seen = true;
                 row_max[i] = *tree;
+            }
+            if tree > &col_max[j] {
+                seen = true;
                 col_max[j] = *tree;
+            }
 
+            if seen {
                 if visibility_record[i][j] == false {
                     visibility_record[i][j] = true;
                     total_visible += 1;
@@ -43,8 +58,6 @@ pub fn day8<P: AsRef<Path>>(file_path: P) -> (i32, i32) {
             }
         }
     }
-
-    println!("{:?}", visibility_record);
 
     (total_visible, 0)
 }

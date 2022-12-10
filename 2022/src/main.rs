@@ -1,5 +1,6 @@
 mod common;
 mod day1;
+mod day10;
 mod day2;
 mod day3;
 mod day4;
@@ -15,7 +16,7 @@ use std::env;
 enum AOCResult {
     Numbers((i32, i32)),
     Strings((String, String)),
-    PointerSized((usize, usize))
+    PointerSized((usize, usize)),
 }
 
 fn main() {
@@ -24,7 +25,7 @@ fn main() {
     let day = String::as_str(&args[1]);
     let file = path_to_data(&args[2]);
 
-    let result = match day{
+    let result = match day {
         "1" => AOCResult::Numbers(day1::day1(file)),
         "2" => AOCResult::Numbers(day2::day2(file)),
         "3" => AOCResult::Numbers(day3::day3(file)),
@@ -34,7 +35,8 @@ fn main() {
         "7" => AOCResult::Numbers(day7::day7(file)),
         "8" => AOCResult::Numbers(day8::day8(file)),
         "9" => AOCResult::Numbers(day9::day9(file)),
-        _ => panic!()
+        "10" => AOCResult::Numbers(day10::day10(file)),
+        _ => panic!(),
     };
 
     println!("Day {} results (Part 1, Part 2): {:?}", day, result);

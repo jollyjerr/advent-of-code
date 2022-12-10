@@ -7,6 +7,7 @@ mod day5;
 mod day6;
 mod day7;
 mod day8;
+mod day9;
 
 use std::env;
 
@@ -32,6 +33,7 @@ fn main() {
         "6" => AOCResult::PointerSized(day6::day6(file)),
         "7" => AOCResult::Numbers(day7::day7(file)),
         "8" => AOCResult::Numbers(day8::day8(file)),
+        "9" => AOCResult::Numbers(day9::day9(file)),
         _ => panic!()
     };
 

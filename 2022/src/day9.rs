@@ -15,83 +15,69 @@ fn track_knots(lines: &Vec<String>, number_of_knots: i32) -> i32 {
     for line in lines {
         let directions = line.split(" ").collect::<Vec<&str>>().as_slice().to_owned();
 
-        println!("directions {:?}", directions);
+        // println!("direction: {:?}", directions);
 
         let direction = directions[0];
         let steps = directions[1].parse::<i32>().unwrap();
 
         for _step in 0..steps {
-            let mut h_position = positions[0];
-            move_head(&mut h_position, direction);
-            positions[0] = h_position;
+            positions[0] = move_head(positions[0], direction);
 
             for t_id in 1..positions.len() {
-                let h_position = positions[t_id - 1];
-                let mut t_position = positions[t_id];
-
-                t_position = move_tail(&h_position, &t_position);
-
-                if t_id == (number_of_knots - 1).try_into().unwrap() {
-                    if !unique_t_positions.contains_key(&t_position) {
-                        unique_t_position_count += 1;
-                    }
-                    unique_t_positions.insert(t_position.to_owned(), true);
+                if !touching(&positions[t_id - 1], &positions[t_id]) {
+                    positions[t_id] = move_tail(&positions[t_id - 1], &positions[t_id]);
                 }
 
-                positions[t_id] = t_position;
+                if t_id == (number_of_knots - 1).try_into().unwrap() {
+                    if !unique_t_positions.contains_key(&positions[t_id]) {
+                        unique_t_position_count += 1;
+                    }
+                    unique_t_positions.insert(positions[t_id].to_owned(), true);
+                }
             }
         }
 
-        println!("results {:?}", positions);
+        // println!("results {:?}", positions);
     }
 
     unique_t_position_count
 }
 
-fn move_head(h_position: &mut [i32; 2], direction: &str) {
+fn move_head(h_position: [i32; 2], direction: &str) -> [i32; 2] {
     match direction {
         "L" => {
-            h_position[0] -= 1;
+            return [h_position[0] - 1, h_position[1]];
         }
         "U" => {
-            h_position[1] += 1;
+            return [h_position[0], h_position[1] + 1];
         }
         "R" => {
-            h_position[0] += 1;
+            return [h_position[0] + 1, h_position[1]];
         }
         "D" => {
-            h_position[1] -= 1;
+            return [h_position[0], h_position[1] - 1];
         }
         _ => unreachable!(),
     }
 }
 
-fn move_tail(h: &[i32; 2], t: &[i32; 2]) -> [i32; 2] {
-    let difx = h[0].max(t[0]) - h[0].min(t[0]);
-    let dify = h[1].max(t[1]) - h[1].min(t[1]);
-
-    println!("h {:?} t {:?} difx {:?} dify {:?}", h, t, difx, dify);
-
-    if difx > 1 {
-        if dify == 1 {
-            return [get_one_closer(h[0], t[0]), h[1]];
-        }
-        return [get_one_closer(h[0], t[0]), t[1]];
-    } else if dify > 1 {
-        if difx == 1 {
-            return [h[0], get_one_closer(h[1], t[1])];
-        }
-        return [t[0], get_one_closer(h[1], t[1])];
-    }
-
-    *t
+fn touching(h: &[i32; 2], t: &[i32; 2]) -> bool {
+    return (h[0] - t[0]).abs() <= 1 && (h[1] - t[1]).abs() <= 1;
 }
 
-fn get_one_closer(h: i32, t: i32) -> i32 {
-    if h > t {
-        return t + 1;
-    }
-    t - 1
+fn move_tail(h: &[i32; 2], t: &[i32; 2]) -> [i32; 2] {
+    let move_x = if h[0] == t[0] {
+        0
+    } else {
+        (h[0] - t[0]) / ((h[0] - t[0]).abs())
+    };
+    let move_y = if h[1] == t[1] {
+        0
+    } else {
+        (h[1] - t[1]) / ((h[1] - t[1]).abs())
+    };
+
+    [t[0] + move_x, t[1] + move_y]
 }
 
 #[cfg(test)]
@@ -105,6 +91,6 @@ mod tests {
 
     #[test]
     fn larger_test_case() {
-        assert_eq!(day9("src/test_data/day9-2.txt"), (88, 37));
+        assert_eq!(day9("src/test_data/day9-2.txt"), (88, 36));
     }
 }

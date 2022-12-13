@@ -12,39 +12,37 @@ fn track_knots(lines: &Vec<String>, number_of_knots: i32) -> i32 {
     let mut unique_t_positions: HashMap<[i32; 2], bool> = HashMap::new();
     let mut positions = vec![[0, 0]; number_of_knots as usize];
 
-    println!("{}", number_of_knots);
-
     for line in lines {
-        println!("step {:?}", line);
         let directions = line.split(" ").collect::<Vec<&str>>().as_slice().to_owned();
+
+        println!("directions {:?}", directions);
 
         let direction = directions[0];
         let steps = directions[1].parse::<i32>().unwrap();
 
-        for knot in 0..steps {
-            if knot == 0 {
-                let mut h_position = positions[knot as usize];
-                move_head(&mut h_position, direction);
-            } else {
-                let mut h_position = positions[knot as usize + 1];
-                let mut t_position = positions[knot as usize];
+        for _step in 0..steps {
+            let mut h_position = positions[0];
+            move_head(&mut h_position, direction);
+            positions[0] = h_position;
 
-                move_head(&mut h_position, direction);
-                t_position = move_tail(&h_position, &t_position, knot % number_of_knots == 0);
+            for t_id in 1..positions.len() {
+                let h_position = positions[t_id - 1];
+                let mut t_position = positions[t_id];
 
-                if knot == (number_of_knots - 2) {
+                t_position = move_tail(&h_position, &t_position);
+
+                if t_id == (number_of_knots - 1).try_into().unwrap() {
                     if !unique_t_positions.contains_key(&t_position) {
                         unique_t_position_count += 1;
                     }
                     unique_t_positions.insert(t_position.to_owned(), true);
                 }
 
-                positions[knot as usize + 1] = h_position;
-                positions[knot as usize] = t_position;
+                positions[t_id] = t_position;
             }
         }
 
-        println!("result {:?}", positions);
+        println!("results {:?}", positions);
     }
 
     unique_t_position_count
@@ -68,13 +66,13 @@ fn move_head(h_position: &mut [i32; 2], direction: &str) {
     }
 }
 
-fn move_tail(h: &[i32; 2], t: &[i32; 2], use_diag: bool) -> [i32; 2] {
+fn move_tail(h: &[i32; 2], t: &[i32; 2]) -> [i32; 2] {
     let difx = h[0].max(t[0]) - h[0].min(t[0]);
     let dify = h[1].max(t[1]) - h[1].min(t[1]);
 
-    if difx > 1 && dify > 1 && use_diag {
-        return [get_one_closer(h[0], t[0]), get_one_closer(h[1], t[1])];
-    } else if difx > 1 {
+    println!("h {:?} t {:?} difx {:?} dify {:?}", h, t, difx, dify);
+
+    if difx > 1 {
         if dify == 1 {
             return [get_one_closer(h[0], t[0]), h[1]];
         }
@@ -102,6 +100,11 @@ mod tests {
 
     #[test]
     fn test_case() {
-        assert_eq!(day9("src/test_data/day9.txt"), (13, 1))
+        assert_eq!(day9("src/test_data/day9.txt"), (13, 1));
+    }
+
+    #[test]
+    fn larger_test_case() {
+        assert_eq!(day9("src/test_data/day9-2.txt"), (88, 37));
     }
 }

@@ -16,6 +16,7 @@ use std::env;
 #[derive(Debug)]
 enum AOCResult {
     Numbers((i32, i32)),
+    BigNums((i64, i64)),
     Strings((String, String)),
     PointerSized((usize, usize)),
 }
@@ -37,7 +38,7 @@ fn main() {
         "8" => AOCResult::Numbers(day8::day8(file)),
         "9" => AOCResult::Numbers(day9::day9(file)),
         "10" => AOCResult::Numbers(day10::day10(file)),
-        "11" => AOCResult::Numbers(day11::day11(file)),
+        "11" => AOCResult::BigNums(day11::day11(file)),
         _ => panic!(),
     };
 

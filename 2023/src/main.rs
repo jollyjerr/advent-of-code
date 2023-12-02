@@ -1,6 +1,7 @@
 mod common;
 mod day1;
+mod day2;
 
 fn main() {
-    // TODO: better cli than last year
+    println!("Just use cargo test this year");
 }

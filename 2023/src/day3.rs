@@ -29,10 +29,18 @@ pub fn day3<P: AsRef<Path>>(file_path: P, part_two: bool) -> u32 {
                     results.push(extract_full_number(tup.0, tup.1, &graph).unwrap_or(0))
                 });
 
-                // I hate this but I timebox these problems
+                // This is hacky and I hate this but I timebox these problems :shrugging:
                 results.sort();
                 results.dedup();
-                sum += results.iter().sum::<u32>();
+                results.retain(|&x| x != 0);
+
+                if part_two {
+                    if col == &'*' && results.len() == 2 {
+                        sum += results[0] * results[1];
+                    }
+                } else {
+                    sum += results.iter().sum::<u32>();
+                }
             }
         }
     }
@@ -81,8 +89,6 @@ fn extract_full_number(ridx: usize, cidx: usize, graph: &Vec<Vec<char>>) -> Opti
             .parse()
             .unwrap();
 
-        println!("{:?}: {:?}", ridx, full);
-
         return Some(full);
     } else {
         return None;
@@ -101,5 +107,15 @@ mod tests {
     #[test]
     fn test_two() {
         assert_eq!(day3("src/data/day3b.txt", false), 528819);
+    }
+
+    #[test]
+    fn test_three() {
+        assert_eq!(day3("src/data/day3a.txt", true), 467835);
+    }
+
+    #[test]
+    fn test_four() {
+        assert_eq!(day3("src/data/day3b.txt", true), 80403602);
     }
 }

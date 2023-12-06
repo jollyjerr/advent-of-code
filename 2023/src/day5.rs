@@ -1,55 +1,40 @@
 use crate::common::read_lines;
-use std::collections::HashMap;
 use std::path::Path;
 
-pub fn day5<P: AsRef<Path>>(file_path: P, part_two: bool) -> u32 {
+pub fn day5<P: AsRef<Path>>(file_path: P, part_two: bool) -> u128 {
     let mut data = pull_data_from_lines(read_lines(file_path)).to_owned();
     let seeds = data.first().unwrap().first().unwrap().to_owned();
     data.remove(0);
 
-    println!("seeds {:?}", seeds);
-    println!("data {:?}", data);
-
-    let mut maps: [HashMap<u32, u32>; 7] = [
-        HashMap::new(),
-        HashMap::new(),
-        HashMap::new(),
-        HashMap::new(),
-        HashMap::new(),
-        HashMap::new(),
-        HashMap::new(),
-    ];
-
-    let mut map_fill_idx = 0;
-
-    for vals in data {
-        for line in vals {
-            for modifier in 0..line[2] {
-                maps[map_fill_idx].insert(line[1] + modifier, line[0] + modifier);
-            }
-        }
-        map_fill_idx += 1;
-    }
-
-    let mut out: u32 = 99999999;
+    let mut out: u128 = 999999999999999999;
 
     for seed in seeds {
-        let mut current: u32 = seed;
+        let mut carry = seed.to_owned();
 
-        for map in &maps {
-            current = *map.get(&current).unwrap_or(&current);
+        for map in &data {
+            for round in map {
+                match get_mapping(carry, &round) {
+                    Some(value) => {
+                        carry = value;
+                        break;
+                    }
+                    None => {
+                        // noop
+                    }
+                }
+            }
         }
 
-        if current < out {
-            out = current;
+        if carry < out {
+            out = carry;
         }
     }
 
     out
 }
 
-fn pull_data_from_lines(lines: Vec<String>) -> Vec<Vec<Vec<u32>>> {
-    let mut data: Vec<Vec<Vec<u32>>> = vec![];
+fn pull_data_from_lines(lines: Vec<String>) -> Vec<Vec<Vec<u128>>> {
+    let mut data: Vec<Vec<Vec<u128>>> = vec![];
 
     let mut outer_vec_idx = 0;
 
@@ -69,12 +54,23 @@ fn pull_data_from_lines(lines: Vec<String>) -> Vec<Vec<Vec<u32>>> {
     data
 }
 
-fn line_of_numbers(line: String) -> Vec<u32> {
+fn line_of_numbers(line: String) -> Vec<u128> {
     line.split(" ")
         .collect::<Vec<&str>>()
         .iter()
-        .map(|c| c.parse::<u32>().unwrap())
+        .map(|c| c.parse::<u128>().unwrap())
         .collect()
+}
+
+fn get_mapping(val: u128, rules: &Vec<u128>) -> Option<u128> {
+    let low = rules[1];
+    let high = rules[1] + rules[2];
+
+    if val >= low && val < high {
+        return Some(rules[0] + (val - rules[1]));
+    }
+
+    None
 }
 
 #[cfg(test)]

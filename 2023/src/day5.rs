@@ -1,36 +1,42 @@
 use crate::common::read_lines;
 use std::path::Path;
+use std::sync::mpsc;
+use std::thread;
 
 pub fn day5<P: AsRef<Path>>(file_path: P, part_two: bool) -> u128 {
     let mut data = pull_data_from_lines(read_lines(file_path)).to_owned();
     let seeds = data.first().unwrap().first().unwrap().to_owned();
     data.remove(0);
 
-    let mut out: u128 = 999999999999999999;
+    let mut results: Vec<u128> = vec![];
 
-    for seed in seeds {
-        let mut carry = seed.to_owned();
+    if part_two {
+        let (tx, rx) = mpsc::channel();
 
-        for map in &data {
-            for round in map {
-                match get_mapping(carry, &round) {
-                    Some(value) => {
-                        carry = value;
-                        break;
-                    }
-                    None => {
-                        // noop
-                    }
-                }
+        for (idx, seed) in seeds.iter().enumerate() {
+            if idx % 2 != 0 {
+                continue;
+            }
+
+            for val in *seed..(seed + seeds[idx + 1]) {
+                let vaal = val.to_owned();
+                let deeta = data.to_owned();
+                let txx = tx.to_owned();
+
+                thread::spawn(move || {
+                    txx.send(get_mapping_for_seed(vaal, &deeta)).unwrap();
+                });
+
+                results.push(rx.recv().unwrap());
             }
         }
-
-        if carry < out {
-            out = carry;
+    } else {
+        for seed in seeds {
+            results.push(get_mapping_for_seed(seed, &data));
         }
     }
 
-    out
+    *results.iter().min().unwrap()
 }
 
 fn pull_data_from_lines(lines: Vec<String>) -> Vec<Vec<Vec<u128>>> {
@@ -62,7 +68,27 @@ fn line_of_numbers(line: String) -> Vec<u128> {
         .collect()
 }
 
-fn get_mapping(val: u128, rules: &Vec<u128>) -> Option<u128> {
+fn get_mapping_for_seed(seed: u128, data: &Vec<Vec<Vec<u128>>>) -> u128 {
+    let mut carry = seed.to_owned();
+
+    for map in data {
+        for round in map {
+            match get_mapping_for_line(carry, &round) {
+                Some(value) => {
+                    carry = value;
+                    break;
+                }
+                None => {
+                    // noop
+                }
+            }
+        }
+    }
+
+    carry
+}
+
+fn get_mapping_for_line(val: u128, rules: &Vec<u128>) -> Option<u128> {
     let low = rules[1];
     let high = rules[1] + rules[2];
 
@@ -84,6 +110,16 @@ mod tests {
 
     #[test]
     fn test_two() {
-        assert_eq!(day5("src/data/day5b.txt", false), 35);
+        assert_eq!(day5("src/data/day5b.txt", false), 462648396);
     }
+
+    #[test]
+    fn test_three() {
+        assert_eq!(day5("src/data/day5a.txt", true), 46);
+    }
+
+    // #[test]
+    // fn test_four() {
+    //     assert_eq!(day5("src/data/day5b.txt", true), 46);
+    // }
 }

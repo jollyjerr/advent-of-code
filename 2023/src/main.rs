@@ -6,5 +6,5 @@ mod day4;
 mod day5;
 
 fn main() {
-    println!("Just use cargo test this year");
+    println!("{:?}", day5::day5("src/data/day5b.txt", true));
 }

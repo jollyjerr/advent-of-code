@@ -20,7 +20,7 @@ pub fn day7<P: AsRef<Path>>(file_path: P, part_two: bool) -> usize {
         })
         .collect();
 
-    hands.sort_by(camel_cards);
+    hands.sort_by(|a, b| camel_cards(a, b, part_two));
 
     hands
         .iter()
@@ -28,16 +28,16 @@ pub fn day7<P: AsRef<Path>>(file_path: P, part_two: bool) -> usize {
         .fold(0, |acc, (i, hand)| acc + ((i + 1) * hand.bid))
 }
 
-fn camel_cards<'a, 'b>(first: &'a Hand, second: &'b Hand) -> Ordering {
-    let a = hand_ranking(&first.cards);
-    let b = hand_ranking(&second.cards);
+fn camel_cards<'a, 'b>(first: &'a Hand, second: &'b Hand, part_two: bool) -> Ordering {
+    let a = hand_ranking(&first.cards, part_two);
+    let b = hand_ranking(&second.cards, part_two);
 
     if a == b {
         for (first, second) in first.cards.chars().zip(second.cards.chars()) {
-            if char_ranking(first) == char_ranking(second) {
+            if char_ranking(first, part_two) == char_ranking(second, part_two) {
                 continue;
             } else {
-                return char_ranking(first).cmp(&char_ranking(second));
+                return char_ranking(first, part_two).cmp(&char_ranking(second, part_two));
             }
         }
         unreachable!("duplicate hands")
@@ -46,11 +46,26 @@ fn camel_cards<'a, 'b>(first: &'a Hand, second: &'b Hand) -> Ordering {
     }
 }
 
-fn hand_ranking(hand: &String) -> u32 {
+fn hand_ranking(hand: &String, part_two: bool) -> u32 {
     let mut counts: [usize; 13] = [0; 13];
 
     for ch in hand.chars() {
-        counts[char_ranking(ch)] += 1;
+        counts[char_ranking(ch, part_two)] += 1;
+    }
+
+    if part_two && hand.contains('J') {
+        let num_js = counts[0];
+
+        counts[0] = 0;
+
+        let highest = counts
+            .iter()
+            .enumerate()
+            .max_by_key(|&(_, val)| val)
+            .map(|(index, _)| index)
+            .unwrap();
+
+        counts[highest] += num_js;
     }
 
     counts.sort();
@@ -67,7 +82,25 @@ fn hand_ranking(hand: &String) -> u32 {
     }
 }
 
-fn char_ranking(ch: char) -> usize {
+fn char_ranking(ch: char, part_two: bool) -> usize {
+    if part_two {
+        return match ch {
+            'J' => 0,
+            '2' => 1,
+            '3' => 2,
+            '4' => 3,
+            '5' => 4,
+            '6' => 5,
+            '7' => 6,
+            '8' => 7,
+            '9' => 8,
+            'T' => 9,
+            'Q' => 10,
+            'K' => 11,
+            'A' => 12,
+            _ => unreachable!(),
+        };
+    }
     match ch {
         '2' => 0,
         '3' => 1,
@@ -99,14 +132,14 @@ mod tests {
     fn test_two() {
         assert_eq!(day7("src/data/day7b.txt", false), 249638405);
     }
-    //
-    // #[test]
-    // fn test_three() {
-    //     assert_eq!(day3("src/data/day3a.txt", true), 467835);
-    // }
-    //
-    // #[test]
-    // fn test_four() {
-    //     assert_eq!(day3("src/data/day3b.txt", true), 80403602);
-    // }
+
+    #[test]
+    fn test_three() {
+        assert_eq!(day7("src/data/day7a.txt", true), 5905);
+    }
+
+    #[test]
+    fn test_four() {
+        assert_eq!(day7("src/data/day7b.txt", true), 249776650);
+    }
 }

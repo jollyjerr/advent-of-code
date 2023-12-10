@@ -2,7 +2,11 @@ fn day9(lines: Vec<String>, is_part_two: bool) -> isize {
     lines
         .iter()
         .map(|line| {
-            let nums = get_values(line);
+            let mut nums = get_values(line);
+
+            if is_part_two {
+                nums.reverse();
+            }
 
             let mut layers: Vec<Vec<isize>> = vec![nums];
 
@@ -53,6 +57,16 @@ mod tests {
 
     #[test]
     fn test_two() {
-        assert_eq!(day9(read_lines("src/data/day9b.txt"), false), 8);
+        assert_eq!(day9(read_lines("src/data/day9b.txt"), false), 1666172641);
+    }
+
+    #[test]
+    fn test_three() {
+        assert_eq!(day9(read_lines("src/data/day9a.txt"), true), 2);
+    }
+
+    #[test]
+    fn test_four() {
+        assert_eq!(day9(read_lines("src/data/day9b.txt"), true), 933);
     }
 }

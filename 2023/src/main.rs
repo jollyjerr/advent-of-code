@@ -8,6 +8,8 @@ mod day6;
 mod day7;
 mod day8;
 mod day9;
+mod day10;
+mod day17;
 
 fn main() {
     println!("{:?}", day5::day5("src/data/day5b.txt", true));

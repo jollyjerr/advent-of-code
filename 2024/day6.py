@@ -41,8 +41,7 @@ def walk(map, start):
                 unique_blocks += 1
                 map[new_location[0]][new_location[1]] = 1
             elif isinstance(next_block, int):
-                # I'm honestly too tired to do this better rn lol
-                if next_block > 500:
+                if next_block > 3:
                     loop_found = True
                     break
                 map[new_location[0]][new_location[1]] += 1
@@ -67,9 +66,8 @@ def part_two(path):
     out = 0
     for i in range(len(map)):
         for j in range(len(map[0])):
-            # I'm honestly too tired to do this better rn lol
-            copy = [row[:] for row in map]
-            if copy[i][j] == '.':
+            if map[i][j] == '.':
+                copy = [row[:] for row in map]
                 copy[i][j] = '#'
                 (_, loop_found) = walk(copy, start)
                 if loop_found:

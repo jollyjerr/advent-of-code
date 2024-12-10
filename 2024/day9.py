@@ -31,50 +31,35 @@ assert part_one('data/9.1.txt') == 1928
 print('part one:', part_one('data/9.2.txt'))
 
 
-DEBUG = False
-
-
 def part_two(path):
     data = read_input(path)
     blocks = [(key, len(list(group))) for key, group in groupby(data)]
+    queue = [x for x in blocks[::-1] if x[0] >= 0]
 
-    if DEBUG:
-        for_print = [n for n, count in blocks for _ in range(count)]
-        print(''.join([f'{x}' if x >= 0 else '.' for x in for_print]))
-
-    seen = set()
-    pointer = len(blocks) - 1
-    while True:
-        # (id, size) with negative id meaning gap
-        check = blocks[pointer]
-        if check[0] < 0 or check in seen:
-            pointer -= 1
-            if pointer > 0:
-                continue
-            else:
+    for i in range(len(queue)):
+        file = queue[i]
+        location = blocks.index(file)
+        for j in range(0, location):
+            block = blocks[j]
+            if block[0] < 0 and block[1] >= file[1]:
+                blocks[j] = (block[0], block[1] - file[1])
+                blocks[location] = (-1, file[1])
+                blocks.insert(j, file)
                 break
-        seen.add(check)
-        true_len = len(str(check[0])) * check[1]
-        for j in range(0, pointer):
-            spot = blocks[j]
-            if spot[0] >= 0 or spot[1] < true_len:
-                continue
-            blocks[j] = (blocks[j][0], blocks[j][1] - true_len)
-            blocks[pointer] = (-1, check[1])
-            blocks.insert(j, check)
-            if DEBUG:
-                for_print = [n for n, count in blocks for _ in range(count)]
-                print(''.join([f'{x}' if x >= 0 else '.' for x in for_print]))
-            break
 
     expanded = [n for n, count in blocks for _ in range(count)]
 
     return sum([i * v for (i, v) in enumerate(expanded) if v >= 0])
 
 
+# debug sesh lol
+assert part_two('data/9.6.txt') == 2910
 assert part_two('data/9.1.txt') == 2858
-# print(part_two('data/9.3.txt'))
-print('part two', part_two('data/9.2.txt'))
+assert part_two('data/9.3.txt') == 813
+assert part_two('data/9.4.txt') == 4
+assert part_two('data/9.5.txt') == 132
+assert part_two('data/9.7.txt') == 169
 
-# 13488487148395 - too high
-# 6937090627391 - too high
+real_result = part_two('data/9.2.txt')
+assert real_result < 6937090627391
+print('part two', part_two('data/9.2.txt'))

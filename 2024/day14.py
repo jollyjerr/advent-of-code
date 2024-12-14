@@ -35,12 +35,12 @@ def part_two(path, width, height):
     robots = read_input(path)
 
     counter = 0
+    # most_vert = 0
 
     # bruh is this for real...
     while True:
         if counter > 10000:
             break
-        os.system('clear')
         grid = [[0] * width for _ in range(height)]
         for (i, [px, py, vx, vy]) in enumerate(robots):
             grid[py][px] += 1
@@ -48,10 +48,23 @@ def part_two(path, width, height):
             row = (py + vy) % height
             robots[i][0] = col
             robots[i][1] = row
-        for line in grid:
-            print(''.join('*' if x > 0 else ' ' for x in line))
-        print(f'does this look like a tree!?!!?? lol ------ {counter}')
-        time.sleep(0.5)
+
+        vert_count = 0
+        mid = width // 2
+        for row in grid:
+            if row[mid] > 0:
+                vert_count += 1
+
+        # originally did the opposite looking for a tree outline...
+        # i just tried different numbers here and watched the slideshow lol
+        if vert_count > 17:
+            os.system('clear')
+            # most_vert = vert_count
+            for line in grid:
+                print(''.join('*' if x > 0 else ' ' for x in line))
+            print(f'does this look like a tree!?!!?? lol ------ {counter}')
+            time.sleep(0.5)
+
         counter += 1
 
 

@@ -31,45 +31,33 @@ def shortest_path(graph, start, end):
     return (float('inf'), [])
 
 
-def end_positions(graph, start):
-    (row, col) = start
-    return [point for point in [
-        (row, col - 2),  # left
-        (row - 1, col - 1),  # top left corner
-        (row - 2, col),  # top
-        (row - 1, col + 1),  # top right corner
-        (row, col + 2),  # right
-        (row + 1, col + 1),  # bottom right corner
-        (row + 2, col),  # bottom
-        (row + 1, col - 1)  # bottom left corner
-    ] if point in graph]
-
-
-def part_one(path, min_save_to_matter):
+def part_one(path, min_save_to_matter, cheating_time_allowed):
     graph = read_input(path)
     start, = (key for key, val in graph.items() if val == 'S')
     end, = (key for key, val in graph.items() if val == 'E')
-    position_to_best_time = dict()  # (i, j) => int
-    all_scores = dict()  # ((i, j), (x, y)) => int
 
-    (base_cost, full_route) = shortest_path(graph, start, end)
+    (base_dist, path) = shortest_path(graph, start, end)
 
-    for i, node in enumerate(full_route):
-        position_to_best_time[node] = base_cost - i
-
-    for i, start_position in enumerate(full_route):
-        for end_position in end_positions(graph, start_position):
-            cost_from_end = position_to_best_time[end_position]
-            all_scores[(start_position, end_position)] = i + 2 + cost_from_end
+    score_from = dict()
+    for i, node in enumerate(path):
+        score_from[node] = base_dist - i
 
     out = 0
-    winners = [(k, abs(v - base_cost)) for (k, v) in all_scores.items() if v < base_cost]
-    for (_k, v) in winners:
-        if v >= min_save_to_matter:
-            out += 1
+    for i, cheat_start in enumerate(path):
+        for j, cheat_end in enumerate(path[i:]):
+            if cheat_start == cheat_end:
+                continue
+            taxicab = sum(abs(a - b) for a, b in zip(cheat_start, cheat_end))
+            if taxicab <= cheating_time_allowed:
+                score = i + taxicab + score_from[cheat_end]
+                diff = abs(score - base_dist)
+                if diff >= min_save_to_matter:
+                    out += 1
 
     return out
 
 
-assert part_one('data/20.1.txt', 2) == 44
-print('part one:', part_one('data/20.2.txt', 100))
+assert part_one('data/20.1.txt', 2, 2) == 44
+print('part one:', part_one('data/20.2.txt', 100, 2))
+assert part_one('data/20.1.txt', 50, 20) == 285
+print('part two:', part_one('data/20.2.txt', 100, 20))

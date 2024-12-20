@@ -45,35 +45,47 @@ def end_positions(graph, start):
     ] if point in graph]
 
 
-def part_one(path):
+def part_one(path, min_save_to_matter):
     graph = read_input(path)
     start, = (key for key, val in graph.items() if val == 'S')
     end, = (key for key, val in graph.items() if val == 'E')
-    position_to_best_time = dict()
+    position_to_best_time = dict()  # (i, j) => int
+    all_scores = dict()  # ((i, j), (x, y)) => int
 
     (base_cost, full_route) = shortest_path(graph, start, end)
     position_to_best_time[start] = base_cost
+    all_scores[(start, end)] = base_cost
 
     for i, start_position in enumerate(full_route):
         for end_position in end_positions(graph, start_position):
+            cost = float('inf')
             if end_position not in position_to_best_time:
-                (cost, _route) = shortest_path(graph, end_position, end)
-                position_to_best_time[end_position] = i + cost + 2  # 2 during cheat
+                (c, _r) = shortest_path(graph, end_position, end)
+                position_to_best_time[end_position] = c
+                cost = c
+            else:
+                cost = position_to_best_time[end_position]
 
-    winners = [(k, abs(v - base_cost)) for (k, v) in position_to_best_time.items() if v < base_cost]
-    saves = {}
-    for (_, v) in winners:
-        if v in saves:
-            saves[v] += 1
-        else:
-            saves[v] = 1
+            all_scores[(start_position, end_position)] = i + cost + 2
 
-    # missing: 2 that save 4, 1 that saves 12,
-    print(saves)
-    print(winners)
+    out = 0
+    winners = [(k, abs(v - base_cost)) for (k, v) in all_scores.items() if v < base_cost]
+    for (_k, v) in winners:
+        if v > min_save_to_matter:
+            out += 1
 
-    return 0
+    # saves = {}
+    # for (_, v) in winners:
+    #     if v in saves:
+    #         saves[v] += 1
+    #     else:
+    #         saves[v] = 1
+    # print(saves)
+    # print(winners)
+
+    return out
 
 
-assert part_one('data/20.1.txt') == 44
-print('part one:', part_one('data/20.2.txt'))
+assert part_one('data/20.1.txt', 0) == 44
+print('part one:', part_one('data/20.2.txt', 100))
+# 1425: too low

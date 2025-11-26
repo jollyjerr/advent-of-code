@@ -1,0 +1,7 @@
+run day_number input_file_path:
+    mkdir -p {{day_number}}/bin
+    gcc $(find {{day_number}} -type f -name '*.c') -o {{day_number}}/bin/run
+    ./{{day_number}}/bin/run {{input_file_path}}
+
+format:
+  find . -name "*.c" -exec clang-format -i {} \;

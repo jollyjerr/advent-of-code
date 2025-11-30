@@ -94,18 +94,26 @@ int main(int argc, char *argv[]) {
     return EXIT_FAILURE;
   }
 
-  CoordinateSet *coords = set_create();
-  if (coords == NULL) {
+  CoordinateSet *pt_one_coords = set_create();
+  CoordinateSet *pt_two_coords = set_create();
+  if (pt_one_coords == NULL || pt_two_coords == NULL) {
+    set_free(pt_one_coords);
+    set_free(pt_two_coords);
     fclose(file);
     return EXIT_FAILURE;
   }
 
-  int x = 0, y = 0;
-  set_add(coords, x, y);
+  int pt_one_x = 0, pt_one_y = 0;
+  set_add(pt_one_coords, pt_one_x, pt_one_y);
 
+  int santa_x = 0, santa_y = 0;
+  int robot_x = 0, robot_y = 0;
+  set_add(pt_two_coords, santa_x, santa_y);
+  set_add(pt_two_coords, robot_x, robot_y);
+
+  bool santa_moves = true;
   int dr = 0, dc = 0;
   int ch;
-  int move_count = 0;
 
   while ((ch = fgetc(file)) != EOF) {
     switch (ch) {
@@ -132,15 +140,32 @@ int main(int argc, char *argv[]) {
       continue;
     }
 
-    x = x + dc;
-    y = y + dr;
-    move_count++;
-    set_add(coords, x, y);
+    pt_one_x = pt_one_x + dc;
+    pt_one_y = pt_one_y + dr;
+    set_add(pt_one_coords, pt_one_x, pt_one_y);
+
+    if (santa_moves == true) {
+      santa_x = santa_x + dc;
+      santa_y = santa_y + dr;
+      set_add(pt_two_coords, santa_x, santa_y);
+
+      santa_moves = false;
+    } else {
+      robot_x = robot_x + dc;
+      robot_y = robot_y + dr;
+      set_add(pt_two_coords, robot_x, robot_y);
+
+      santa_moves = true;
+    }
   }
 
-  printf("\nNumber of houses with at least one present: %d\n", coords->size);
+  printf("\nPart One: number of houses with at least one present: %d\n",
+         pt_one_coords->size);
+  printf("\nPart Two: number of houses with at least one present: %d\n",
+         pt_two_coords->size);
 
-  set_free(coords);
+  set_free(pt_one_coords);
+  set_free(pt_two_coords);
   fclose(file);
 
   return EXIT_SUCCESS;

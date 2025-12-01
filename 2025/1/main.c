@@ -6,41 +6,41 @@ int main(int argc, char *argv[]) {
 
   FILE *file = fopen(data_path, "r");
   if (file == NULL) {
-    perror("read data failed");
+    perror("read data failed\n");
     return EXIT_FAILURE;
   }
 
+  int dial_value = 50;
+
+  int pt_one = 0;
+  int pt_two = 0;
+
   char direction;
   int count;
-
-  int value = 50;
-  int out = 0;
-
   while (fscanf(file, " %c%d", &direction, &count) == 2) {
-    if (direction == 'R') {
-      for (int i = 0; i < count; i++) {
-        value += 1;
+    int step = (direction == 'R') ? 1 : -1;
 
-        if (value == 100) {
-          value = 0;
-        }
+    for (int i = 0; i < count; i++) {
+      dial_value += step;
+
+      if (dial_value == 100) {
+        dial_value = 0;
+      } else if (dial_value == -1) {
+        dial_value = 99;
       }
-    } else {
-      for (int i = 0; i < count; i++) {
-        value -= 1;
 
-        if (value == -1) {
-          value = 99;
-        }
+      if (dial_value == 0) {
+        pt_two++;
       }
     }
 
-    if (value == 0) {
-      out += 1;
+    if (dial_value == 0) {
+      pt_one++;
     }
   }
 
-  printf("pt one: %d\n", out);
+  printf("pt one: %d\n", pt_one);
+  printf("pt two: %d\n", pt_two);
 
   fclose(file);
 

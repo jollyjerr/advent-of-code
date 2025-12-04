@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
 
     int to_remove_idx = 0;
     // size is a guess here but seems okay
-    int to_remove[pt_one * 2][2];
+    int to_remove[3000][2];
 
     // copy pasta because I am lazy
     for (int row = 0; row < num_rows; row++) {

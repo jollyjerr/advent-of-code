@@ -31,52 +31,25 @@ int main(int argc, char *argv[]) {
     num_rows++;
   }
 
+  const int deltas[8][2] = {{-1, 0}, {-1, 1}, {0, 1},  {1, 1},
+                            {1, 0},  {1, -1}, {0, -1}, {-1, -1}};
+
   int pt_one = 0;
   for (int row = 0; row < num_rows; row++) {
     for (int col = 0; col < num_cols; col++) {
       if (graph[row][col] == '@') {
         int around = 0;
 
-        int up = col - 1;
-        int right = row + 1;
-        int down = col + 1;
-        int left = row - 1;
-        bool can_up = up >= 0;
-        bool can_right = right < num_cols;
-        bool can_down = down < num_rows;
-        bool can_left = left >= 0;
+        for (int i = 0; i < 8; i++) {
+          int n_row = row + deltas[i][0];
+          int n_col = col + deltas[i][1];
 
-        // up
-        if (can_up && graph[row][up] == '@') {
-          around++;
-        }
-        // up-right
-        if (can_up && can_right && graph[right][up] == '@') {
-          around++;
-        }
-        // right
-        if (can_right && graph[right][col] == '@') {
-          around++;
-        }
-        // down-right
-        if (can_down && can_right && graph[right][down] == '@') {
-          around++;
-        }
-        // down
-        if (can_down && graph[row][down] == '@') {
-          around++;
-        }
-        // down-left
-        if (can_down && can_left && graph[left][down] == '@') {
-          around++;
-        }
-        // left
-        if (can_left && graph[left][col] == '@') {
-          around++;
-        }
-        // up-left
-        if (can_up && can_left && graph[left][up] == '@') {
-          around++;
+          bool in_bounds = (n_row >= 0) && (n_col >= 0) && (n_row < num_rows) &&
+                           (n_col < num_cols);
+
+          if (in_bounds && graph[n_row][n_col] == '@') {
+            around++;
+          }
         }
 
         if (around < 4) {
@@ -87,6 +60,56 @@ int main(int argc, char *argv[]) {
   }
 
   printf("pt one %d\n", pt_one);
+
+  int pt_two = 0;
+  bool last_round_removed = true;
+  while (last_round_removed) {
+    last_round_removed = false;
+
+    int to_remove_idx = 0;
+    // size is a guess here but seems okay
+    int to_remove[pt_one * 2][2];
+
+    // copy pasta because I am lazy
+    for (int row = 0; row < num_rows; row++) {
+      for (int col = 0; col < num_cols; col++) {
+        if (graph[row][col] == '@') {
+          int around = 0;
+
+          for (int i = 0; i < 8; i++) {
+            int n_row = row + deltas[i][0];
+            int n_col = col + deltas[i][1];
+
+            bool in_bounds = (n_row >= 0) && (n_col >= 0) &&
+                             (n_row < num_rows) && (n_col < num_cols);
+
+            if (in_bounds && graph[n_row][n_col] == '@') {
+              around++;
+            }
+          }
+
+          if (around < 4) {
+            to_remove[to_remove_idx][0] = row;
+            to_remove[to_remove_idx][1] = col;
+            to_remove_idx++;
+            pt_two++;
+          }
+        }
+      }
+    }
+
+    if (to_remove_idx > 0) {
+      last_round_removed++;
+      for (int i = 0; i <= to_remove_idx; i++) {
+        int row = to_remove[i][0];
+        int col = to_remove[i][1];
+
+        graph[row][col] = '.';
+      }
+    }
+  }
+
+  printf("pt two %d\n", pt_two);
 
   fclose(file);
   return EXIT_SUCCESS;

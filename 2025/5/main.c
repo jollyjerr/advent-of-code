@@ -88,9 +88,9 @@ int main(int argc, char *argv[]) {
       tail++;
 
       if (tail != head) {
-           ranges[tail][0] = ranges[head][0];
-           ranges[tail][1] = ranges[head][1];
-       }
+        ranges[tail][0] = ranges[head][0];
+        ranges[tail][1] = ranges[head][1];
+      }
     }
 
     head++;

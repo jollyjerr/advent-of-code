@@ -38,12 +38,15 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  char *grid[row_count];
   size_t grid_idx = 0;
+  char **grid = (char **)malloc(row_count * sizeof(char *));
 
   char *row = strtok(tachyon_diagram, "\n");
+  size_t row_len = strlen(row);
+
   while (row != NULL) {
-    grid[grid_idx] = row;
+    grid[grid_idx] = (char *)malloc(row_len + 1);
+    strcpy(grid[grid_idx], row);
 
     row = strtok(NULL, "\n");
     grid_idx++;
@@ -51,8 +54,8 @@ int main(int argc, char *argv[]) {
 
   unsigned long pt_one = 0;
 
-  for (int row = 0; row < row_count; row++) {
-    for (int col = 0; col < strlen(grid[row]); col++) {
+  for (int row = 0; row < row_count - 1; row++) {
+    for (int col = 0; col < row_len; col++) {
       int ch = grid[row][col];
 
       if (ch == 'S') {
@@ -71,5 +74,32 @@ int main(int argc, char *argv[]) {
 
   printf("pt one: %lu\n", pt_one);
 
+  unsigned long pt_two = 0;
+
+  // bottom up DP, each split contains the sum
+  // of the number of paths below it on each side
+  unsigned long paths[row_len];
+  for (int i = 0; i < row_len; i++) {
+    paths[i] = 1;
+  }
+
+  for (int row = row_count - 1; row >= 0; row--) {
+    for (int col = 0; col < row_len; col++) {
+      if (grid[row][col] == '^') {
+        paths[col] = paths[col - 1] + paths[col + 1];
+      } else if (grid[row][col] == 'S') {
+        pt_two = paths[col];
+      }
+    }
+  }
+
+  // not 3102 lol
+  printf("pt two: %lu\n", pt_two);
+
+  for (int i = 0; i < row_count; i++) {
+    free(grid[i]);
+  }
+  free(grid);
+  free(tachyon_diagram);
   return EXIT_SUCCESS;
 }

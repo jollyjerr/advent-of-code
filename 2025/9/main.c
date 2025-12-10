@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 bool valid(long long *point, long long **points, size_t line_count) {
+  // printf("point: %llu,%llu\n", point[0], point[1]);
   bool right_up = false;
   bool right_down = false;
   bool left_up = false;
@@ -18,7 +19,7 @@ bool valid(long long *point, long long **points, size_t line_count) {
 
     // the point itself is a red point
     if ((check[0] == point[0] && check[1] == point[1])) {
-      // printf("valid point\n");
+      // printf("valid point A\n");
       return true;
     }
 
@@ -65,7 +66,7 @@ bool valid(long long *point, long long **points, size_t line_count) {
 
   if ((up && down) || (left && right) ||
       (right_up && right_down && left_up && left_down)) {
-    // printf("valid point b\n");
+    // printf("valid point B\n");
     return true;
   }
 
@@ -110,7 +111,7 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  // printf("pt one: %llu\n", max_area);
+  printf("pt one: %llu\n", max_area);
 
   // ------------------ pt two ---------------
   long long pt_two = 0;
@@ -125,31 +126,39 @@ int main(int argc, char *argv[]) {
         continue;
       }
 
-      long long *p3[2] = {&p1[0], &p2[1]};
-      long long *p4[2] = {&p2[0], &p1[1]};
+      long long p3[2] = {p1[0], p2[1]};
+      long long p4[2] = {p2[0], p1[1]};
 
       // printf("rec: %llu,%llu %llu,%llu %llu,%llu %llu,%llu\n", p1[0], p1[1],
       //        p2[0], p2[1], *p3[0], *p3[1], *p4[0], *p4[1]);
 
-      if (valid(*p3, points, line_count) && valid(*p4, points, line_count)) {
-        // printf("rec: %llu,%llu %llu,%llu %llu,%llu %llu,%llu\n", p1[0], p1[1],
-        //        p2[0], p2[1], *p3[0], *p3[1], *p4[0], *p4[1]);
-        // printf("valid\n");
+      if (valid(p3, points, line_count) && valid(p4, points, line_count)) {
+        long long area =
+            llabs((p1[0] - p2[0]) + 1) * llabs((p1[1] - p2[1]) + 1);
+        if (area > pt_two) {
+          // printf("rec: %llu,%llu %llu,%llu %llu,%llu %llu,%llu\n", p1[0], p1[1],
+          //        p2[0], p2[1], p3[0], p3[1], p4[0], p4[1]);
+          // printf("valid\n");
+          // printf("area: %llu\n", area);
+          pt_two = area;
+        }
       }
     }
   }
 
-  // 2,1
-  long long e1[2] = {2, 1};
+  // long long e1[2] = {83178,84037};
   // long long e2[2] = {9, 1};
   // long long e3[2] = {7, 0};
   // long long e4[2] = {8, 1};
-  printf("e1: %d\n", valid(e1, points, line_count));
+  // printf("e1: %d\n", valid(e1, points, line_count));
   // printf("e2: %d\n", valid(e2, points, line_count));
   // printf("e3: %d\n", valid(e3, points, line_count));
   // printf("e4: %d\n", valid(e4, points, line_count));
 
-  // printf("pt two: %llu\n", max_area);
+  // 4633892172 too high
+  // 4633889290 too high
+  // not 3781050, no feedback
+  printf("pt two: %llu\n", pt_two);
 
   for (size_t i = 0; i < line_count; i++) {
     free(points[i]);

@@ -6,134 +6,8 @@ typedef struct {
   long long row1, col1, row2, col2, area;
 } Rec;
 
-bool valid_rec(Rec *rec, long long **points, size_t line_count) {
-  long long min_col = (rec->col1 < rec->col2) ? rec->col1 : rec->col2;
-  long long max_col = (rec->col1 > rec->col2) ? rec->col1 : rec->col2;
-  long long min_row = (rec->row1 < rec->row2) ? rec->row1 : rec->row2;
-  long long max_row = (rec->row1 > rec->row2) ? rec->row1 : rec->row2;
-
-  // check no red point is inside rectangle
-  for (size_t i = 0; i < line_count; i++) {
-    long long *check = points[i];
-    long long ccol = check[0];
-    long long crow = check[1];
-
-    bool point_inside_col = (ccol > min_col && ccol < max_col);
-    bool point_inside_row = (crow > min_row && crow < max_row);
-
-    if (point_inside_col && point_inside_row) {
-      return false;
-    }
-  }
-
-  // check no lines pass through rectangle
-  for (size_t i = 0; i < line_count - 1; i++) {
-    // next point is promised to be next in outline
-    long long *p1 = points[i];
-    long long *p2 = points[i + 1];
-
-    long long ccol1 = p1[0];
-    long long crow1 = p1[1];
-    long long ccol2 = p2[0];
-    long long crow2 = p2[1];
-
-    // horizontal lines
-    if (crow1 == crow2) {
-      long long r = crow1;
-      if (r > min_row && r < max_row) {
-        long long seg_min_col = (ccol1 < ccol2) ? ccol1 : ccol2;
-        long long seg_max_col = (ccol1 > ccol2) ? ccol1 : ccol2;
-
-        if (seg_max_col > min_col && seg_min_col < max_col) {
-          return false;
-        }
-      }
-      // vertical lines
-    } else if (ccol1 == ccol2) {
-      long long c = ccol1;
-      if (c > min_col && c < max_col) {
-        long long seg_min_row = (crow1 < crow2) ? crow1 : crow2;
-        long long seg_max_row = (crow1 > crow2) ? crow1 : crow2;
-
-        if (seg_max_row > min_row && seg_min_row < max_row) {
-          return false;
-        }
-      }
-    }
-  }
-
-  return true;
-}
-
-bool valid(long long *point, long long **points, size_t line_count) {
-  // printf("point: %llu,%llu\n", point[0], point[1]);
-  bool right_up = false;
-  bool right_down = false;
-  bool left_up = false;
-  bool left_down = false;
-  bool up = false;
-  bool down = false;
-  bool right = false;
-  bool left = false;
-
-  for (size_t i = 0; i < line_count; i++) {
-    long long *check = points[i];
-    // col(left to right), row(top to bottom)
-
-    // the point itself is a red point
-    if ((check[0] == point[0] && check[1] == point[1])) {
-      // printf("valid point A\n");
-      return true;
-    }
-
-    // todo: refactor this
-    // on same row
-    if (check[1] == point[1]) {
-      // check on right
-      if (check[0] > point[0]) {
-        right = true;
-      } else {
-        left = true;
-      }
-      // on same col
-    } else if (check[0] == point[0]) {
-      // check below
-      if (check[1] > point[1]) {
-        down = true;
-      } else {
-        up = true;
-      }
-      // check above point
-    } else if (check[1] < point[1]) {
-      // check on right
-      if (check[0] > point[0]) {
-        right_up = true;
-      } else {
-        left_up = true;
-      }
-      // check below point
-    } else if (check[1] > point[1]) {
-      // check on right
-      if (check[0] > point[0]) {
-        right_down = true;
-      } else {
-        left_down = true;
-      }
-    }
-  }
-
-  // printf("point: %llu,%llu\n", point[0], point[1]);
-  // printf("up: %d, right: %d, down: %d, left: %d\n", up, right, down, left);
-  // printf("right_up: %d, left_up: %d, right_down: %d, left_down: %d\n",
-  // right_up, left_up, right_down, left_down);
-
-  if ((up && down) || (left && right) ||
-      (right_up && right_down && left_up && left_down)) {
-    // printf("valid point B\n");
-    return true;
-  }
-
-  return false;
+long long cal_area(long long x1, long long y1, long long x2, long long y2) {
+  return llabs(x1 - x2 + 1) * llabs(y1 - y2 + 1);
 }
 
 int compare_rec_desc(const void *a, const void *b) {
@@ -145,6 +19,59 @@ int compare_rec_desc(const void *a, const void *b) {
   if (val_a->area > val_b->area)
     return -1;
   return 0;
+}
+
+void add_side(long long x1, long long y1, long long x2, long long y2,
+              long long **side_points, size_t *side_point_idx_ptr) {
+  long long min_x = x1 > x2 ? x2 : x1;
+  long long max_x = x1 > x2 ? x1 : x2;
+  long long min_y = y1 > y2 ? y2 : y1;
+  long long max_y = y1 > y2 ? y1 : y2;
+
+  size_t side_point_idx = *side_point_idx_ptr;
+
+  side_points[side_point_idx][0] = x1;
+  side_points[side_point_idx][1] = y1;
+  side_point_idx++;
+
+  if (x1 == x2) {
+    for (long long k = min_y + 1; k < max_y; k++) {
+      side_points[side_point_idx][0] = x1;
+      side_points[side_point_idx][1] = k;
+      side_point_idx++;
+    }
+  } else if (y1 == y2) {
+    for (long long k = min_x + 1; k < max_x; k++) {
+      side_points[side_point_idx][0] = k;
+      side_points[side_point_idx][1] = y1;
+      side_point_idx++;
+    }
+  }
+
+  *side_point_idx_ptr = side_point_idx;
+}
+
+bool valid_point(long long x1, long long y1, long long **side_points,
+                 const size_t side_point_idx) {
+  // point is on the wall
+  for (size_t i = 0; i < side_point_idx; i++) {
+    if (side_points[i][0] == x1 && side_points[i][1] == y1) {
+      return true;
+    }
+  }
+
+  // count wall points directly to the right
+  int crossings = 0;
+  for (size_t i = 0; i < side_point_idx; i++) {
+    long long x2 = side_points[i][0];
+    long long y2 = side_points[i][1];
+
+    if (y2 == y1 && x2 > x1) {
+      crossings++;
+    }
+  }
+
+  return (crossings % 2) == 1;
 }
 
 int main(int argc, char *argv[]) {
@@ -177,8 +104,8 @@ int main(int argc, char *argv[]) {
   long long max_area = 0;
   for (size_t i = 0; i < line_count; i++) {
     for (size_t j = 0; j < line_count; j++) {
-      long long area = llabs((points[i][0] - points[j][0]) + 1) *
-                       llabs((points[i][1] - points[j][1]) + 1);
+      long long area =
+          cal_area(points[i][0], points[i][1], points[j][0], points[j][1]);
       if (area > max_area) {
         max_area = area;
       }
@@ -190,45 +117,42 @@ int main(int argc, char *argv[]) {
   // ------------------ pt two ---------------
   long long pt_two = 0;
 
+  size_t num_side_points = 1000000;
+  long long **side_points = malloc(num_side_points * sizeof(long long *));
+  for (size_t i = 0; i < num_side_points; i++) {
+    side_points[i] = malloc(2 * sizeof(long long));
+  }
+
+  // calculate all side points of the wall
+  size_t side_point_idx = 0;
+  for (size_t i = 0; i < line_count - 1; i++) {
+    long long x1 = points[i][0];
+    long long y1 = points[i][1];
+    long long x2 = points[i + 1][0];
+    long long y2 = points[i + 1][1];
+
+    add_side(x1, y1, x2, y2, side_points, &side_point_idx);
+  }
+
+  // from last point back to the first
+  long long x1_last = points[line_count - 1][0];
+  long long y1_last = points[line_count - 1][1];
+  long long x2_first = points[0][0];
+  long long y2_first = points[0][1];
+  add_side(x1_last, y1_last, x2_first, y2_first, side_points, &side_point_idx);
+
+  // calculate and sort recs by area so we can approach largest from above
   long long area_count = line_count * line_count;
   Rec **recs = malloc(area_count * sizeof(Rec *));
-  size_t area_idx = 0;
-
   for (size_t i = 0; i < area_count; i++) {
     recs[i] = malloc(sizeof(Rec));
   }
 
+  size_t area_idx = 0;
   for (size_t i = 0; i < line_count; i++) {
     for (size_t j = 0; j < line_count; j++) {
-      long long *p1 = points[i];
-      long long *p2 = points[j];
-      // this solution did not account for certain edge cases :(
-      // // same points or adjacent corners
-      // // do I need to include adjacent corners?
-      // if (p1[0] == p2[0] || p1[1] == p2[1]) {
-      //   continue;
-      // }
-      //
-      // long long p3[2] = {p1[0], p2[1]};
-      // long long p4[2] = {p2[0], p1[1]};
-      //
-      // // printf("rec: %llu,%llu %llu,%llu %llu,%llu %llu,%llu\n", p1[0],
-      // p1[1],
-      // //        p2[0], p2[1], *p3[0], *p3[1], *p4[0], *p4[1]);
-      //
-      // if (valid(p3, points, line_count) && valid(p4, points, line_count)) {
-      //   long long area =
-      //       llabs((p1[0] - p2[0]) + 1) * llabs((p1[1] - p2[1]) + 1);
-      //   if (area > pt_two) {
-      //     // printf("rec: %llu,%llu %llu,%llu %llu,%llu %llu,%llu\n", p1[0],
-      //     p1[1],
-      //     //        p2[0], p2[1], p3[0], p3[1], p4[0], p4[1]);
-      //     // printf("valid\n");
-      //     // printf("area: %llu\n", area);
-      //     pt_two = area;
-      //   }
-      // }
-      long long area = llabs((p1[0] - p2[0]) + 1) * llabs((p1[1] - p2[1]) + 1);
+      long long *p1 = points[i], *p2 = points[j];
+      long long area = cal_area(p1[0], p1[1], p2[0], p2[1]);
 
       recs[area_idx]->col1 = p1[0];
       recs[area_idx]->row1 = p1[1];
@@ -243,28 +167,51 @@ int main(int argc, char *argv[]) {
   qsort(recs, area_count, sizeof(Rec *), compare_rec_desc);
 
   for (size_t i = 0; i < area_count; i++) {
-    if (valid_rec(recs[i], points, line_count)) {
+    long long raw_x1 = recs[i]->col1, raw_y1 = recs[i]->row1;
+    long long raw_x2 = recs[i]->col2, raw_y2 = recs[i]->row2;
+    long long min_x = (raw_x1 < raw_x2) ? raw_x1 : raw_x2;
+    long long max_x = (raw_x1 > raw_x2) ? raw_x1 : raw_x2;
+    long long min_y = (raw_y1 < raw_y2) ? raw_y1 : raw_y2;
+    long long max_y = (raw_y1 > raw_y2) ? raw_y1 : raw_y2;
+
+    bool perimeter_valid = true;
+
+    for (long long x = min_x; x <= max_x; x++) {
+      if (!valid_point(x, min_y, side_points, side_point_idx) ||
+          !valid_point(x, max_y, side_points, side_point_idx)) {
+        perimeter_valid = false;
+        break;
+      }
+    }
+
+    if (perimeter_valid) {
+      for (long long y = min_y + 1; y < max_y; y++) {
+        if (!valid_point(min_x, y, side_points, side_point_idx) ||
+            !valid_point(max_x, y, side_points, side_point_idx)) {
+          perimeter_valid = false;
+          break;
+        }
+      }
+    }
+
+    if (perimeter_valid) {
       pt_two = recs[i]->area;
       break;
     }
   }
 
-  // long long e1[2] = {83178, 84037};
-  // long long e2[2] = {9, 1};
-  // long long e3[2] = {7, 0};
-  // long long e4[2] = {8, 1};
-  // printf("e1: %d\n", valid(e1, points, line_count));
-  // printf("e2: %d\n", valid(e2, points, line_count));
-  // printf("e3: %d\n", valid(e3, points, line_count));
-  // printf("e4: %d\n", valid(e4, points, line_count));
-
   // 4633892172 too high
   // 4633889290 too high
   // not 3781050, no feedback
-  // not 1396463530, no feedback
+  // not 1396463530, no feedback -- I keep getting this result ahhhhhhh
+  // not 1396313832, no feedback
   printf("pt two: %llu\n", pt_two);
 
   // ---------------- cleanup ---------------
+  for (size_t i = 0; i < num_side_points; i++) {
+    free(side_points[i]);
+  }
+  free(side_points);
   for (size_t i = 0; i < area_count; i++) {
     free(recs[i]);
   }

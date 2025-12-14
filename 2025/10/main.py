@@ -1,4 +1,5 @@
 import re
+import pulp
 
 
 class Machine:
@@ -19,7 +20,7 @@ class Machine:
         match = re.search(r'\{(.*?)\}', line)
         return list(map(int, match.group(1).split(','))) if match else None
 
-    def change_lights(self, start, button):
+    def change(self, start, button):
         out = ""
         for i in range(len(start)):
             if i in button:
@@ -29,56 +30,45 @@ class Machine:
                 out += start[i]
         return out
 
-    def change_joltage(self, start, button):
-        out = []
-        for i in range(len(start)):
-            ch = start[i] + 1 if i in button else start[i]
-            out.append(ch)
-        return out
-
     def min_press_configure_lights(self):
-        return self.shortest_path_lights("." * len(self.lights), self.lights)
+        return self.shortest_path("." * len(self.lights), self.lights)
 
-    def min_press_configure_joltage(self):
-        return self.shortest_path_joltage([0] * len(self.joltage), self.joltage)
-
-    def shortest_path_lights(self, start, end):
+    def shortest_path(self, start, end):
         queue = [(start, 0)]
         visited = {start}
 
         while queue:
             current, distance = queue.pop(0)
-            print(current, distance)
 
             if current == end:
                 return distance
 
             for button in self.buttons:
-                new_state = self.change_lights(current, button)
+                new_state = self.change(current, button)
 
                 if new_state not in visited:
                     visited.add(new_state)
                     queue.append((new_state, distance + 1))
 
-    def shortest_path_joltage(self, start, end):
-        start_key = tuple(start)
+    def min_press_configure_joltage(self):
+        m = len(self.joltage)
+        k = len(self.buttons)
 
-        queue = [(start_key, 0)]
-        visited = {start_key}
+        prob = pulp.LpProblem("MinPresses", pulp.LpMinimize)
+        x = [pulp.LpVariable(f"x{j}", lowBound=0, cat='Integer') for j in range(k)]
 
-        while queue:
-            current, distance = queue.pop(0)
+        prob += pulp.lpSum(x)
 
-            if current == end:
-                print('done')
-                return distance
+        for p in range(m):
+            prob += pulp.lpSum(x[j] for j in range(k) if p in self.buttons[j]) == self.joltage[p]
 
-            for button in self.buttons:
-                new_state = self.change_joltage(current, button)
-                new_key = tuple(new_state)
-                if new_key not in visited:
-                    visited.add(new_key)
-                    queue.append((new_state, distance + 1))
+        status = prob.solve(pulp.PULP_CBC_CMD(msg=0))
+
+        if status != 1:
+            print("unsolvable")
+            return None
+
+        return int(pulp.value(prob.objective))
 
 
 def read_input(path):
@@ -89,8 +79,8 @@ def part_one(path):
     return sum(machine.min_press_configure_lights() for machine in read_input(path))
 
 
-# assert part_one('data/10.1.txt') == 7
-# print('pt one:', part_one('data/10.2.txt'))
+assert part_one('data/10.1.txt') == 7
+print('pt one:', part_one('data/10.2.txt'))
 
 
 def part_two(path):
